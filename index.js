@@ -113,7 +113,7 @@ let cos = "```";
 //===================SESSION============================
 if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
   if (config.SESSION_ID) {
-  const sessdata = config.SESSION_ID.replace("CLICKER=","")
+  const sessdata = config.SESSION_ID.replace("NIYOX=","")
   const filer = File.fromURL(`https://mega.nz/file/${sessdata}`)
   filer.download((err, data) => {
     if (err) throw err
@@ -159,13 +159,24 @@ require("./plugins/" + plugin);
 });
 console.log('Didula MD V2 💚 Plugins installed successful ✅')
 console.log('Didula MD V2 💚Bot connected to whatsapp ✅')
+await connectdb();
+      await updb();
+      await conn.sendMessage(conn.user.id, {
+        image: { url: `https://i.ibb.co/fk18xM6/NiyoX-Md.jpg` },
+        caption: `
+  *Successfully Connected* ✅
+  
+  ◦ Follow My GitHub Acount: ${cos}https://github.com/Danupa0${cos}..
+  ◦ Use ${cos}${config.PREFIX}menu${cos} command to get Commands List..
+  ◦ Thank You For Choosing Prime NiyoX-MD Whatsapp User Bot..
+  
+  *ᴘʀɪᴍᴇ ɴɪʏᴏx ᴍᴅ ᴡʜᴀᴛꜱᴀᴘᴘ ᴜꜱᴇʀ ʙᴏᴛ*
+  *ᴄʀᴇᴀᴛᴇᴅ ʙʏ • ᴅᴀɴᴜxᴢᴢ 🅥*`,
+      });
+      console.clear();
+    }
+  });
 
-let up = `Didula MD V2 💚 Wa-BOT connected successful ✅\n\nPREFIX: ${prefix}`;
-
-conn.sendMessage(ownerNumber + "@s.whatsapp.net", { image: { url: `https://i.ibb.co/tC37Q7B/20241220-122443.jpg` }, caption: up })
-
-}
-})
 conn.ev.on('creds.update', saveCreds)  
 
 conn.ev.on('messages.upsert', async(mek) => {
