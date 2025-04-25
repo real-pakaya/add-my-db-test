@@ -4,14 +4,19 @@ if (fs.existsSync('config.env')) require('dotenv').config({ path: './config.env'
 function convertToBool(text, fault = 'true') {
     return text === fault ? true : false;
 }
+
 module.exports = {
-AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
-STATUS_READ_MSG: process.env.STATUS_READ_MSG || "Didula MD V2 💚",
-FOOTER: process.env.FOOTER || "Didula MD V2 💚",
-AUTO_STATUS_REPLY: process.env.AUTO_STATUS_REPLY || "true",
-IMAGE_LIMIT: process.env.IMAGE_LIMIT || "3",
-ALIVE_IMG: process.env.ALIVE_IMG || "https://i.ibb.co/tC37Q7B/20241220-122443.jpg",
-SESSION_ID: process.env.SESSION_ID || "CLICKER=MGMmVDqB#Q7E5NU--zHa-MZbQHr7cWkTZTHJBGlj_4vJUt5TK5HE",
+    SESSION_ID: process.env.SESSION_ID === undefined ? 'NIYOX=5L1hyQ5B#4yu4UNJTmA1rV3MKBxVcHXYyaLVafHZFcil8gGRE_R0' : process.env.SESSION_ID, //ADD YOUR SESSION ID
+    GITHUB_USER_NAME: process.env.GITHUB_USER_NAME === undefined ? 'danu-xz' : process.env.GITHUB_USER_NAME, //ADD YOUR GITHUB USERNAME
+    GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN === undefined ? 'eKuQCdjy8igkKqNbV1su9ZVC8LMoYN4SoYw4' : process.env.GITHUB_AUTH_TOKEN //ADD YOUR GITHUB AUTH TOKEN WITHOUT gph_ ,  example - G5OxxdvEbiBPWxm4A0xypQGlyCr4FS267ifz
 };
 
-
+/**
+  _____    _____    _____   __  __   ______     _   _   _____  __     __   ____   __   __    __  __   _____  
+ |  __ \  |  __ \  |_   _| |  \/  | |  ____|   | \ | | |_   _| \ \   / /  / __ \  \ \ / /   |  \/  | |  __ \ 
+ | |__) | | |__) |   | |   | \  / | | |__      |  \| |   | |    \ \_/ /  | |  | |  \ V /    | \  / | | |  | |
+ |  ___/  |  _  /    | |   | |\/| | |  __|     | . ` |   | |     \   /   | |  | |   > <     | |\/| | | |  | |
+ | |      | | \ \   _| |_  | |  | | | |____    | |\  |  _| |_     | |    | |__| |  / . \    | |  | | | |__| |
+ |_|      |_|  \_\ |_____| |_|  |_| |______|   |_| \_| |_____|    |_|     \____/  /_/ \_\   |_|  |_| |_____/ 
+ */                                                                                                            
+                                                                                                             
