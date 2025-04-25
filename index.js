@@ -16,6 +16,20 @@ const {
   generateForwardMessageContent,
   proto,
 } = require("@whiskeysockets/baileys");
+const fs = require("fs");
+const EventEmitter = require('events');
+const P = require("pino");
+const pino = require("pino");
+const config = require("./config");
+const figlet = require("figlet");
+const lolcatjs = require("lolcatjs");
+const FileType = require("file-type");
+const chalk = require("chalk");
+const qrcode = require("qrcode-terminal");
+const NodeCache = require("node-cache");
+const util = require("util");
+const moment = require('moment-timezone')
+const { toAudio, toPTT, toVideo } = require("./lib/converter");
 const {
   getBuffer,
   getGroupAdmins,
@@ -29,16 +43,29 @@ const {
   fetchBuffer,
   getFile,
 } = require("./lib/functions");
-const fs = require('fs')
-const P = require('pino')
-const config = require('./config')
-const qrcode = require('qrcode-terminal')
-const util = require('util')
-const { sms,downloadMediaMessage } = require('./lib/msg')
-const axios = require('axios')
-const { File } = require('megajs')
-const ownerNumber = ['94771820962']
+const {
+  imageToWebp,
+  videoToWebp,
+  writeExifImg,
+  writeExifVid,
+} = require("./lib/exif");
+const abc = fetchJson
+const { sms, downloadMediaMessage } = require("./lib/msg");
+const axios = require("axios");
+const fetch = require("node-fetch");
+const { File } = require("megajs");
+const mega = require("megajs");
+const path = require("path");
+const msgRetryCounterCache = new NodeCache();
+const ownerNumber = config.OWNER
+const wm = "ᴅᴀɴᴜxᴢ 💜";
+const welcomez = "𝗛 𝗘 𝗟 𝗟 𝗢 ❗👻";
+const goodbyez = "𝗙 𝗨 𝗖 𝗞  𝗬 𝗢 𝗨 ☠️❗";
+const botname = "ᴾᴿᴵᴹᴱ ᴺᴵʸᴼ-ˣ ᴹᴰ 🥶";
+const ownername = "𝕯𝕬𝕹𝖀𝖃𝖅 😴";
+const thumb = "https://i.ibb.co/nC4h2dw/NiyoX-Md.jpg";
 config.FOOTER = "> ᴘʀɪᴍᴇ ɴɪʏᴏx ᴍᴅ 💜\n> sɪᴍᴘʟᴇ ᴡᴀʙᴏᴛ ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀɴᴜxᴢ 🅥";
+const l = console.log;
 var {
   updateCMDStore,
   isbtnID,
@@ -122,44 +149,83 @@ console.log("Session download completed !!")
     })
   })
 }}
-
+// <<==========PORTS===========>>
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 8000;
-
-//=============================================
-
+const port = process.env.PORT || 3034;
+//====================================
 async function connectToWA() {
-console.log("Didula MD V2 💚 Connecting wa bot 🧬...");
-const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/')
-var { version } = await fetchLatestBaileysVersion()
+  const { version, isLatest } = await fetchLatestBaileysVersion();
+  console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
+  const { state, saveCreds } = await useMultiFileAuthState(
+    __dirname + "/auth_info_baileys/"
+  );
+  let x = "https://shorturl.at/DxI6a"
+  const usePairingCode = true;
+  const conn = makeWASocket({
+    logger: P({ level: "silent" }),
+    printQRInTerminal: !usePairingCode,
+    browser: Browsers.macOS("Safari"),
+    syncFullHistory: false,
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
+    },
+    version,
+    generateHighQualityLinkPreview: true,
+    defaultQueryTimeoutMs: 0,
+  });
 
-const conn = makeWASocket({
-        logger: P({ level: 'silent' }),
-        printQRInTerminal: false,
-        browser: Browsers.macOS("Firefox"),
-        syncFullHistory: true,
-        auth: state,
-        version
-        })
-
-conn.ev.on('connection.update', (update) => {
-const { connection, lastDisconnect } = update
-if (connection === 'close') {
-if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-connectToWA()
-}
-} else if (connection === 'open') {
-console.log('Didula MD V2 💚 😼 Installing... ')
-const path = require('path');
-fs.readdirSync("./plugins/").forEach((plugin) => {
-if (path.extname(plugin).toLowerCase() == ".js") {
-require("./plugins/" + plugin);
-}
-});
-console.log('Didula MD V2 💚 Plugins installed successful ✅')
-console.log('Didula MD V2 💚Bot connected to whatsapp ✅')
-await connectdb();
+  conn.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect } = update;
+    if (connection === "close") {
+      if (
+        lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut
+      ) {
+        connectToWA();
+      }
+    } else if (connection === "open") {
+      console.log("----------------------------------------------------");
+      lolcatjs.fromString("[Installing plugins 🔌...!!!]");
+      const path = require("path");
+      fs.readdirSync("./plugins/").forEach((plugin) => {
+        if (path.extname(plugin).toLowerCase() == ".js") {
+          require("./plugins/" + plugin);
+        }
+      });
+      console.log(" ╭──────────────────────────────────────···");
+      lolcatjs.fromString(
+        chalk.cyan(
+          figlet.textSync("PRIME-NIYOX MD", {
+            font: "Star Wars",
+            horizontalLayout: "full",
+            verticalLayout: "full",
+            whitespaceBreak: true,
+          })
+        )
+      );
+      console.log(" ├──────────────────────────────────────···");
+      lolcatjs.fromString(" ├ [SERVER STARTED!!!]");
+      console.log(" ├──────────────────────────────────────···");
+      console.log(" ├──────────────────────────────────────···");
+      lolcatjs.fromString(
+        chalk.cyan(
+          figlet.textSync("SIMPLE BOT WA", {
+            font: "Star Wars",
+            horizontalLayout: "full",
+            verticalLayout: "full",
+            whitespaceBreak: true,
+          })
+        )
+      );
+      console.log(" ├──────────────────────────────────────···");
+      lolcatjs.fromString(" ├ [Plugins installed ✅!!!]");
+      console.log(" ├──────────────────────────────────────···");
+      lolcatjs.fromString(" ├ [NiyoX Md Bot connected ✅!!!]");
+      console.log(" ├──────────────────────────────────────···");
+      lolcatjs.fromString(" ├ [Create by DanuXz!!!]");
+      console.log(" ╰──────────────────────────────────────···");
+      await connectdb();
       await updb();
       await conn.sendMessage(conn.user.id, {
         image: { url: `https://i.ibb.co/fk18xM6/NiyoX-Md.jpg` },
@@ -177,41 +243,32 @@ await connectdb();
     }
   });
 
-conn.ev.on('creds.update', saveCreds)  
-
-conn.ev.on('messages.upsert', async(mek) => {
+ conn.ev.on("creds.update", saveCreds);
+  conn.ev.on('messages.upsert', async(mek) => {
+  try {
 mek = mek.messages[0]
-if (!mek.message) return        
-mek.message = (getContentType(mek.message) === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
- if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_READ_STATUS) {
-            await conn.readMessages([mek.key]);
+if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_READ_STATUS === 'on'){
+    await conn.readMessages([mek.key])
+    const emojis = ['🧩', '🍉', '💜', '🌸', '🪴', '💊', '💫', '🍂', '🌟', '🎋', '😶‍🌫️', '🫀', '🧿', '👀', '🤖', '🚩', '🥰', '🗿', '💜', '💙', '🌝', '🖤', '💚'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    await conn.sendMessage(mek.key.remoteJid, {
+      react: {
+        text: randomEmoji,
+        key: mek.key,
+      } 
+    }, { statusJidList: [mek.key.participant] })
+  }
 
-            if (config.AUTO_STATUS_REPLY) {
-                const customMessage = config.STATUS_READ_MSG || '✅ Auto Status Seen Bot By Didula-MD-V2';
-                await conn.sendMessage(mek.key.remoteJid, { text: customMessage }, { quoted: mek });
-            }
-        }
-
-
-
-
-
-
-
-
-const m = sms(conn, mek)
-const type = getContentType(mek.message)
-const content = JSON.stringify(mek.message)
-const from = mek.key.remoteJid
-
-// Always send 'composing' presence update
-await conn.sendPresenceUpdate('composing', from);
-
-// Always send 'recording' presence update
-await conn.sendPresenceUpdate('recording', from);
-
-const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.contextInfo != null ? mek.message.extendedTextMessage.contextInfo.quotedMessage || [] : []
-const body =
+      const m = sms(conn, mek);
+      const type = getContentType(mek.message);
+      const content = JSON.stringify(mek.message);
+      const from = mek.key.remoteJid;
+      const quoted =
+        type == "extendedTextMessage" &&
+        mek.message.extendedTextMessage.contextInfo != null
+          ? mek.message.extendedTextMessage.contextInfo.quotedMessage || []
+          : [];
+      const body =
         type === "conversation"
           ? mek.message.conversation
           : mek.message?.extendedTextMessage?.contextInfo?.hasOwnProperty(
@@ -239,29 +296,68 @@ const body =
           : type == "videoMessage" && mek.message.videoMessage.caption
           ? mek.message.videoMessage.caption
           : "";
-const prefix = config.PREFIX
+      const prefix = config.PREFIX
         ? config.PREFIX
         : /^./.test(body)
         ? body.match(/^./gi)
         : "#";
-const isCmd = body.startsWith(prefix)
-const command = isCmd ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase() : ''
-const args = body.trim().split(/ +/).slice(1)
-const q = args.join(' ')
-const isGroup = from.endsWith('@g.us')
-const sender = mek.key.fromMe ? (conn.user.id.split(':')[0]+'@s.whatsapp.net' || conn.user.id) : (mek.key.participant || mek.key.remoteJid)
-const senderNumber = sender.split('@')[0]
-const botNumber = conn.user.id.split(':')[0]
-const pushname = mek.pushName || 'Sin Nombre'
-const isMe = botNumber.includes(senderNumber)
-const isOwner = ownerNumber.includes(senderNumber) || isMe
-const botNumber2 = await jidNormalizedUser(conn.user.id);
-const groupMetadata = isGroup ? await conn.groupMetadata(from).catch(e => {}) : ''
-const groupName = isGroup ? groupMetadata.subject : ''
-const participants = isGroup ? await groupMetadata.participants : ''
-const groupAdmins = isGroup ? await getGroupAdmins(participants) : ''
-const isBotAdmins = isGroup ? groupAdmins.includes(botNumber2) : false
-const isAdmins = isGroup ? groupAdmins.includes(sender) : false
+      const isCmd = body.startsWith(prefix);
+      const command = isCmd
+        ? body.slice(prefix.length).trim().split(" ").shift().toLowerCase()
+        : "";
+      const args = body.trim().split(/ +/).slice(1);
+      const q = args.join(" ");
+      const isGroup = from.endsWith("@g.us");
+      const sender = mek.key.fromMe
+        ? conn.user.id.split(":")[0] + "@s.whatsapp.net" || conn.user.id
+        : mek.key.participant || mek.key.remoteJid;
+      const senderNumber = sender.split("@")[0];
+      const mentionByTag =
+        type == "extendedTextMessage" &&
+        mek.message.extendedTextMessage.contextInfo != null
+          ? mek.message.extendedTextMessage.contextInfo.quotedMessage || []
+          : [];
+      const botNumber = conn.user.id.split(":")[0];
+      const pushname = mek.pushName || "NO NUMBER";
+      const ownbot = config.OWNER;
+      const isownbot = ownbot?.includes(senderNumber);
+      const danupa = "94774500937";
+      const isDanupa = danupa?.includes(senderNumber);
+      const isbot = botNumber.includes(senderNumber);
+      const botNumber2 = await jidNormalizedUser(conn.user.id);
+     // const mala = await abc(x);
+      const groupMetadata = isGroup
+        ? await conn.groupMetadata(from).catch((e) => {})
+        : "";
+      const groupName = isGroup ? groupMetadata?.subject : "";
+      const participants = isGroup ? await groupMetadata?.participants : "";
+      const groupAdmins = isGroup ? await getGroupAdmins(participants) : "";
+      const isBotAdmins = isGroup ? groupAdmins.includes(botNumber2) : false;
+      const isAdmins = isGroup ? groupAdmins.includes(sender) : false;
+     // const isreaction = m.message.reactionMessage ? true : false
+      //=====================================================================
+		  if(isDanupa){
+        if(!m.message.reactionMessag){
+        await conn.sendMessage(from, { react: { text: '☃️', key: mek.key } })
+         }
+      }
+//else if(isnum){
+  //     if(!isreaction){
+ //      await conn.sendMessage(from, { react: { text: '⚖️', key: mek.key } });
+ //   }
+//}
+      const isMe = isbot ? isbot : isownbot
+      const isOwner = isownbot
+
+      const isAnti = (teks) => {
+        let getdata = teks;
+        for (let i = 0; i < getdata.length; i++) {
+          if (getdata[i] === from) return true;
+        }
+        return false;
+      };
+      const who = m.sender;
+      const ppuser = "https://telegra.ph/file/24fa902ead26340f3df2c.png";
 
 const reply = async (teks) => {
         return await conn.sendMessage(from, {
