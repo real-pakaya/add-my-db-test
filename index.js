@@ -38,6 +38,7 @@ const { sms,downloadMediaMessage } = require('./lib/msg')
 const axios = require('axios')
 const { File } = require('megajs')
 const ownerNumber = ['94771820962']
+config.FOOTER = "> ᴘʀɪᴍᴇ ɴɪʏᴏx ᴍᴅ 💜\n> sɪᴍᴘʟᴇ ᴡᴀʙᴏᴛ ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀɴᴜxᴢ 🅥";
 var {
   updateCMDStore,
   isbtnID,
